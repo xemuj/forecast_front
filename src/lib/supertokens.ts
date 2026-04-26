@@ -5,7 +5,7 @@ import EmailPassword from 'supertokens-web-js/recipe/emailpassword'
 SuperTokens.init({
   appInfo: {
     appName: 'Weather App',
-    apiDomain: 'http://localhost:8000',
+    apiDomain: import.meta.env.VITE_API_URL as string,
     apiBasePath: '/auth',
   },
   recipeList: [
