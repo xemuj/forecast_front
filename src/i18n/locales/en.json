@@ -1,0 +1,89 @@
+{
+  "app": {
+    "name": "WeatherApp",
+    "title": "Weather App"
+  },
+  "auth": {
+    "login": {
+      "subtitle": "Sign in to view weather",
+      "email": "Email address",
+      "password": "Password",
+      "submit": "Sign in",
+      "submitting": "Signing in...",
+      "noAccount": "Don't have an account?",
+      "registerLink": "Sign up",
+      "error": {
+        "generic": "Sign in failed",
+        "connection": "Connection error"
+      }
+    },
+    "register": {
+      "subtitle": "Create your account to get started",
+      "email": "Email address",
+      "password": "Password",
+      "passwordHint": "Minimum 8 characters",
+      "submit": "Create account",
+      "submitting": "Creating account...",
+      "hasAccount": "Already have an account?",
+      "loginLink": "Sign in",
+      "error": {
+        "generic": "Registration failed",
+        "connection": "Connection error",
+        "passwordTooShort": "Password must be at least 8 characters"
+      }
+    }
+  },
+  "dashboard": {
+    "header": {
+      "signOut": "Sign out"
+    },
+    "location": {
+      "gettingLocation": "Getting location...",
+      "errorDenied": "Location denied. Click on the map to set it manually.",
+      "errorGeneric": "Could not get location.",
+      "errorManual": "Could not get location. Click on the map to set it manually.",
+      "newLocation": "New location selected",
+      "confirm": "Confirm",
+      "cancel": "Cancel",
+      "saving": "Saving...",
+      "errorUpdate": "Error updating location"
+    },
+    "weather": {
+      "loading": "Loading weather...",
+      "error": "Error loading weather data",
+      "forecast": "Forecast",
+      "in3hours": "In 3 hours",
+      "tomorrow": "Tomorrow",
+      "in3days": "In 3 days",
+      "last24h": "Last 24 hours",
+      "currentConditions": "Current conditions",
+      "now": "Now",
+      "ago3h": "3h ago",
+      "humidity": "Humidity",
+      "wind": "Wind",
+      "temperature": "Temperature",
+      "generated": "Generated:"
+    },
+    "wmo": {
+      "0": "Clear",
+      "1": "Mostly clear",
+      "2": "Partly cloudy",
+      "3": "Overcast",
+      "45": "Fog",
+      "48": "Rime fog",
+      "51": "Light drizzle",
+      "53": "Moderate drizzle",
+      "55": "Dense drizzle",
+      "61": "Light rain",
+      "63": "Moderate rain",
+      "65": "Heavy rain",
+      "71": "Light snow",
+      "73": "Moderate snow",
+      "75": "Heavy snow",
+      "80": "Light showers",
+      "81": "Moderate showers",
+      "82": "Violent showers",
+      "95": "Thunderstorm"
+    }
+  }
+}

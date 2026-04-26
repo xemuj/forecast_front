@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import Session from 'supertokens-web-js/recipe/session'
 import {
   LineChart,
@@ -9,32 +10,12 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import { format, parseISO } from 'date-fns'
-import { es } from 'date-fns/locale'
+import { enUS, es } from 'date-fns/locale'
 import { locationsApi, weatherApi, ForecastResponse, WeatherPoint, Location } from '../services/api'
 import { getBrowserLocation, getCityCountry } from '../services/location'
 import LocationPicker from '../components/LocationPicker'
 
-const WMO_DESCRIPTIONS: Record<number, string> = {
-  0: 'Despejado',
-  1: 'Mayormente despejado',
-  2: 'Parcialmente nublado',
-  3: 'Nublado',
-  45: 'Niebla',
-  48: 'Niebla con escarcha',
-  51: 'Llovizna ligera',
-  53: 'Llovizna moderada',
-  55: 'Llovizna densa',
-  61: 'Lluvia ligera',
-  63: 'Lluvia moderada',
-  65: 'Lluvia intensa',
-  71: 'Nieve ligera',
-  73: 'Nieve moderada',
-  75: 'Nieve intensa',
-  80: 'Chubascos ligeros',
-  81: 'Chubascos moderados',
-  82: 'Chubascos violentos',
-  95: 'Tormenta',
-}
+const DATE_LOCALE = { en: enUS, es }
 
 function weatherIcon(code: number | null): string {
   if (!code) return '🌤️'
@@ -48,13 +29,14 @@ function weatherIcon(code: number | null): string {
 }
 
 function ForecastCard({ label, point, offset }: { label: string; point: WeatherPoint; offset: string }) {
+  const { t } = useTranslation()
   return (
     <div className="flex-1 bg-white rounded-2xl shadow-md p-4 flex flex-col items-center text-center min-w-[100px]">
       <p className="text-xs text-slate-500 font-medium mb-1">{offset}</p>
       <p className="text-lg font-semibold text-slate-700">{label}</p>
       <div className="text-3xl my-2">{weatherIcon(point.weather_code)}</div>
       <p className="text-sm text-slate-500 mb-1">
-        {WMO_DESCRIPTIONS[point.weather_code ?? 0] ?? ''}
+        {t(`dashboard.wmo.${point.weather_code ?? 0}`)}
       </p>
       <p className="text-2xl font-bold text-brand-700">
         {Math.round(point.temperature_c)}°C
@@ -70,6 +52,7 @@ function ForecastCard({ label, point, offset }: { label: string; point: WeatherP
 }
 
 export default function Dashboard() {
+  const { t, i18n } = useTranslation()
   const [forecast, setForecast] = useState<ForecastResponse | null>(null)
   const [location, setLocation] = useState<Location | null>(null)
   const [loadingWeather, setLoadingWeather] = useState(true)
@@ -81,17 +64,19 @@ export default function Dashboard() {
   const [mapCenter, setMapCenter] = useState<{ lat: number; lon: number } | null>(null)
   const [mapReady, setMapReady] = useState(false)
 
+  const locale = DATE_LOCALE[i18n.language as keyof typeof DATE_LOCALE] ?? enUS
+
   const fetchWeather = useCallback(async (lat: number, lon: number) => {
     setLoadingWeather(true)
     try {
       const res = await weatherApi.getForecast(lat, lon)
       setForecast(res.data)
     } catch (e: any) {
-      setWeatherError(e?.response?.data?.detail || 'Error loading weather data')
+      setWeatherError(e?.response?.data?.detail || t('dashboard.weather.error'))
     } finally {
       setLoadingWeather(false)
     }
-  }, [])
+  }, [t])
 
   const initLocation = useCallback(async () => {
     setLocationError('')
@@ -125,12 +110,12 @@ export default function Dashboard() {
         setMapCenter({ lat: saved.data.latitude, lon: saved.data.longitude })
         await fetchWeather(saved.data.latitude, saved.data.longitude)
       } else {
-        setLocationError('Could not get location. Click on the map to set it manually.')
+        setLocationError(t('dashboard.location.errorManual'))
         setLoadingWeather(false)
         setMapCenter({ lat: 40.71, lon: -74.01 })
       }
     }
-  }, [fetchWeather])
+  }, [fetchWeather, t])
 
   useEffect(() => {
     initLocation()
@@ -166,7 +151,7 @@ export default function Dashboard() {
       setPendingLat(null)
       setPendingLon(null)
     } catch (err: any) {
-      setLocationError(err?.message || 'Error updating location')
+      setLocationError(err?.message || t('dashboard.location.errorUpdate'))
     } finally {
       setSavingLocation(false)
     }
@@ -178,7 +163,7 @@ export default function Dashboard() {
   }
 
   const chartData = forecast?.history.slice(-24).map(p => ({
-    time: format(parseISO(p.timestamp), 'HH:mm', { locale: es }),
+    time: format(parseISO(p.timestamp), 'HH:mm', { locale }),
     temp: Math.round(p.temperature_c),
     humidity: p.humidity ?? 0,
   }))
@@ -186,8 +171,8 @@ export default function Dashboard() {
   const displayLat = pendingLat ?? mapCenter?.lat ?? 0
   const displayLon = pendingLon ?? mapCenter?.lon ?? 0
 
-  const currentTemp = forecast?.history.length
-    ? forecast.history[forecast.history.length - 1].temperature_c
+  const lastPoint = forecast?.history.length
+    ? forecast.history[forecast.history.length - 1]
     : null
 
   return (
@@ -195,7 +180,7 @@ export default function Dashboard() {
       <header className="bg-brand-600 text-white px-4 py-3 flex-shrink-0 flex items-center justify-between shadow-md z-10">
         <div className="flex items-center gap-3">
           <div>
-            <h1 className="text-lg font-bold leading-tight">🌤 ClimaApp</h1>
+            <h1 className="text-lg font-bold leading-tight">🌤 {t('app.name')}</h1>
             {location && (
               <p className="text-brand-100 text-xs">
                 {location.city ? `${location.city}, ` : ''}
@@ -204,36 +189,42 @@ export default function Dashboard() {
             )}
           </div>
         </div>
-        {currentTemp !== null && !loadingWeather && (
+        {lastPoint && !loadingWeather && (
           <div className="text-right">
-            <p className="text-2xl font-bold">{Math.round(currentTemp)}°C</p>
+            <p className="text-2xl font-bold">{Math.round(lastPoint.temperature_c)}°C</p>
             <p className="text-xs text-brand-100">
-              {forecast!.history[forecast!.history.length - 1]
-                ? WMO_DESCRIPTIONS[forecast!.history[forecast!.history.length - 1].weather_code ?? 0] ?? ''
-                : ''}
+              {t(`dashboard.wmo.${lastPoint.weather_code ?? 0}`)}
             </p>
           </div>
         )}
-        <button
-          onClick={handleLogout}
-          className="p-2 rounded-xl hover:bg-brand-500 transition-colors"
-          title="Sign out"
-        >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-          </svg>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleLogout}
+            className="p-2 rounded-xl hover:bg-brand-500 transition-colors"
+            title={t('dashboard.header.signOut')}
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+          </button>
+          <button
+            onClick={() => i18n.changeLanguage(i18n.language === 'es' ? 'en' : 'es')}
+            className="px-2 py-1 text-xs font-bold rounded-lg bg-brand-500 hover:bg-brand-400 transition-colors"
+            title="Toggle language"
+          >
+            {i18n.language === 'es' ? 'EN' : 'ES'}
+          </button>
+        </div>
       </header>
 
       <div className="flex flex-1 overflow-hidden">
         <div className="w-full lg:w-3/5 flex flex-col">
-          <div className="relative h-[45vh] lg:min-h-0 lg:flex-1"
-          >
+          <div className="relative h-[45vh] lg:min-h-0 lg:flex-1">
             {!mapReady && (
               <div className="absolute inset-0 z-10 flex items-center justify-center bg-slate-100">
                 <div className="flex flex-col items-center gap-3">
                   <div className="w-8 h-8 border-3 border-brand-500 border-t-transparent rounded-full animate-spin" />
-                  <p className="text-slate-500 text-sm">Getting location...</p>
+                  <p className="text-slate-500 text-sm">{t('dashboard.location.gettingLocation')}</p>
                 </div>
               </div>
             )}
@@ -250,7 +241,7 @@ export default function Dashboard() {
           {pendingLat !== null && pendingLon !== null && (
             <div className="flex-shrink-0 bg-brand-50 border-t border-brand-100 p-3 flex items-center gap-3">
               <div className="flex-1">
-                <p className="text-xs text-brand-600 font-medium">New location</p>
+                <p className="text-xs text-brand-600 font-medium">{t('dashboard.location.newLocation')}</p>
                 <p className="text-sm text-brand-700">
                   {pendingLat.toFixed(4)}°, {pendingLon.toFixed(4)}°
                 </p>
@@ -259,7 +250,7 @@ export default function Dashboard() {
                 onClick={handleCancelEdit}
                 className="px-3 py-2 text-sm text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors"
               >
-                Cancel
+                {t('dashboard.location.cancel')}
               </button>
               <button
                 onClick={handleConfirmLocation}
@@ -269,10 +260,10 @@ export default function Dashboard() {
                 {savingLocation ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Saving...
+                    {t('dashboard.location.saving')}
                   </>
                 ) : (
-                  'Confirm'
+                  t('dashboard.location.confirm')
                 )}
               </button>
             </div>
@@ -296,25 +287,25 @@ export default function Dashboard() {
             {loadingWeather ? (
               <div className="flex flex-col items-center justify-center py-12">
                 <div className="w-10 h-10 border-4 border-brand-500 border-t-transparent rounded-full animate-spin mb-4" />
-                <p className="text-slate-500 text-sm">Loading weather...</p>
+                <p className="text-slate-500 text-sm">{t('dashboard.weather.loading')}</p>
               </div>
             ) : forecast ? (
               <>
                 <section>
                   <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-3">
-                    Forecast
+                    {t('dashboard.weather.forecast')}
                   </h2>
                   <div className="flex gap-3 overflow-x-auto pb-1">
-                    <ForecastCard label="+3h" point={forecast.forecast_3h} offset="In 3 hours" />
-                    <ForecastCard label="+1d" point={forecast.forecast_1d} offset="Tomorrow" />
-                    <ForecastCard label="+3d" point={forecast.forecast_3d} offset="In 3 days" />
+                    <ForecastCard label="+3h" point={forecast.forecast_3h} offset={t('dashboard.weather.in3hours')} />
+                    <ForecastCard label="+1d" point={forecast.forecast_1d} offset={t('dashboard.weather.tomorrow')} />
+                    <ForecastCard label="+3d" point={forecast.forecast_3d} offset={t('dashboard.weather.in3days')} />
                   </div>
                 </section>
 
                 {chartData && chartData.length > 0 && (
                   <section className="bg-white rounded-2xl shadow-md p-4">
                     <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-3">
-                      Last 24 hours
+                      {t('dashboard.weather.last24h')}
                     </h2>
                     <ResponsiveContainer width="100%" height={180}>
                       <LineChart data={chartData}>
@@ -333,7 +324,7 @@ export default function Dashboard() {
                           width={36}
                         />
                         <Tooltip
-                          formatter={(v: number) => [`${v}°C`, 'Temperature']}
+                          formatter={(v: number) => [`${v}°C`, t('dashboard.weather.temperature')]}
                           labelStyle={{ color: '#334155' }}
                           contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0' }}
                         />
@@ -352,11 +343,11 @@ export default function Dashboard() {
 
                 <section className="bg-white rounded-2xl shadow-md p-4">
                   <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-3">
-                    Current conditions
+                    {t('dashboard.weather.currentConditions')}
                   </h2>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="bg-brand-50 rounded-xl p-3 text-center">
-                      <p className="text-xs text-brand-600 mb-1">Now</p>
+                      <p className="text-xs text-brand-600 mb-1">{t('dashboard.weather.now')}</p>
                       <p className="text-xl font-bold text-brand-700">
                         {forecast.history.length > 0
                           ? Math.round(forecast.history[forecast.history.length - 1].temperature_c)
@@ -364,7 +355,7 @@ export default function Dashboard() {
                       </p>
                     </div>
                     <div className="bg-slate-50 rounded-xl p-3 text-center">
-                      <p className="text-xs text-slate-500 mb-1">3h ago</p>
+                      <p className="text-xs text-slate-500 mb-1">{t('dashboard.weather.ago3h')}</p>
                       <p className="text-xl font-bold text-slate-700">
                         {forecast.history.length > 3
                           ? Math.round(forecast.history[forecast.history.length - 4].temperature_c)
@@ -372,7 +363,7 @@ export default function Dashboard() {
                       </p>
                     </div>
                     <div className="bg-slate-50 rounded-xl p-3 text-center">
-                      <p className="text-xs text-slate-500 mb-1">Humidity</p>
+                      <p className="text-xs text-slate-500 mb-1">{t('dashboard.weather.humidity')}</p>
                       <p className="text-xl font-bold text-slate-700">
                         {forecast.history.length > 0 && forecast.history[forecast.history.length - 1].humidity !== null
                           ? `${Math.round(forecast.history[forecast.history.length - 1].humidity!)}%`
@@ -380,7 +371,7 @@ export default function Dashboard() {
                       </p>
                     </div>
                     <div className="bg-slate-50 rounded-xl p-3 text-center">
-                      <p className="text-xs text-slate-500 mb-1">Wind</p>
+                      <p className="text-xs text-slate-500 mb-1">{t('dashboard.weather.wind')}</p>
                       <p className="text-xl font-bold text-slate-700">
                         {forecast.history.length > 0 && forecast.history[forecast.history.length - 1].wind_speed !== null
                           ? `${Math.round(forecast.history[forecast.history.length - 1].wind_speed!)} km/h`
@@ -391,7 +382,8 @@ export default function Dashboard() {
                 </section>
 
                 <p className="text-center text-xs text-slate-400">
-                  {format(parseISO(forecast.generated_at), "dd MMM yyyy, HH:mm", { locale: es })}
+                  {t('dashboard.weather.generated')}{' '}
+                  {format(parseISO(forecast.generated_at), 'dd MMM yyyy, HH:mm', { locale })}
                 </p>
               </>
             ) : null}
@@ -410,18 +402,18 @@ export default function Dashboard() {
           {loadingWeather ? (
             <div className="flex items-center justify-center py-6 gap-3">
               <div className="w-6 h-6 border-3 border-brand-500 border-t-transparent rounded-full animate-spin" />
-              <p className="text-slate-500 text-sm">Loading weather...</p>
+              <p className="text-slate-500 text-sm">{t('dashboard.weather.loading')}</p>
             </div>
           ) : forecast ? (
             <div className="space-y-3">
               <div className="flex gap-2 overflow-x-auto pb-1">
-                <ForecastCard label="+3h" point={forecast.forecast_3h} offset="In 3 hours" />
-                <ForecastCard label="+1d" point={forecast.forecast_1d} offset="Tomorrow" />
-                <ForecastCard label="+3d" point={forecast.forecast_3d} offset="In 3 days" />
+                <ForecastCard label="+3h" point={forecast.forecast_3h} offset={t('dashboard.weather.in3hours')} />
+                <ForecastCard label="+1d" point={forecast.forecast_1d} offset={t('dashboard.weather.tomorrow')} />
+                <ForecastCard label="+3d" point={forecast.forecast_3d} offset={t('dashboard.weather.in3days')} />
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div className="bg-slate-50 rounded-xl p-2 text-center">
-                  <p className="text-xs text-slate-500">Humidity</p>
+                  <p className="text-xs text-slate-500">{t('dashboard.weather.humidity')}</p>
                   <p className="text-base font-bold text-slate-700">
                     {forecast.history.length > 0 && forecast.history[forecast.history.length - 1].humidity !== null
                       ? `${Math.round(forecast.history[forecast.history.length - 1].humidity!)}%`
@@ -429,7 +421,7 @@ export default function Dashboard() {
                   </p>
                 </div>
                 <div className="bg-slate-50 rounded-xl p-2 text-center">
-                  <p className="text-xs text-slate-500">Wind</p>
+                  <p className="text-xs text-slate-500">{t('dashboard.weather.wind')}</p>
                   <p className="text-base font-bold text-slate-700">
                     {forecast.history.length > 0 && forecast.history[forecast.history.length - 1].wind_speed !== null
                       ? `${Math.round(forecast.history[forecast.history.length - 1].wind_speed!)} km/h`

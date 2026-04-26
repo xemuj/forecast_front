@@ -1,8 +1,10 @@
+import { useTranslation } from 'react-i18next'
 import EmailPassword from 'supertokens-web-js/recipe/emailpassword'
 import { useNavigate, Link } from 'react-router-dom'
 import { useState } from 'react'
 
 export default function Register() {
+  const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -15,7 +17,7 @@ export default function Register() {
     setError('')
 
     if (password.length < 8) {
-      setError('La contraseña debe tener al menos 8 caracteres')
+      setError(t('auth.register.error.passwordTooShort'))
       setLoading(false)
       return
     }
@@ -31,12 +33,12 @@ export default function Register() {
       if (res.status === 'OK') {
         navigate('/dashboard')
       } else if (res.status === 'FIELD_ERROR') {
-        setError(res.formFields?.[0]?.error || 'Registro fallido')
+        setError(res.formFields?.[0]?.error || t('auth.register.error.generic'))
       } else {
-        setError('Registro fallido')
+        setError(t('auth.register.error.generic'))
       }
-    } catch (err: any) {
-      setError(err?.message || 'Error de conexión')
+    } catch {
+      setError(t('auth.register.error.connection'))
     } finally {
       setLoading(false)
     }
@@ -47,8 +49,17 @@ export default function Register() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <div className="text-4xl mb-2">🌤</div>
-          <h1 className="text-2xl font-bold text-brand-700">ClimaApp</h1>
-          <p className="text-slate-500 mt-1">Crea tu cuenta para comenzar</p>
+          <h1 className="text-2xl font-bold text-brand-700">{t('app.name')}</h1>
+          <p className="text-slate-500 mt-1">{t('auth.register.subtitle')}</p>
+        </div>
+
+        <div className="flex justify-end mb-2">
+          <button
+            onClick={() => i18n.changeLanguage(i18n.language === 'es' ? 'en' : 'es')}
+            className="px-2 py-1 text-xs font-bold rounded-lg bg-brand-600 text-white hover:bg-brand-500 transition-colors"
+          >
+            {i18n.language === 'es' ? 'EN' : 'ES'}
+          </button>
         </div>
 
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-lg p-6 space-y-4">
@@ -59,7 +70,7 @@ export default function Register() {
           )}
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Correo electrónico</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('auth.register.email')}</label>
             <input
               type="email"
               value={email}
@@ -71,7 +82,7 @@ export default function Register() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Contraseña</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('auth.register.password')}</label>
             <input
               type="password"
               value={password}
@@ -79,7 +90,7 @@ export default function Register() {
               required
               minLength={8}
               className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all text-slate-800"
-              placeholder="Mínimo 8 caracteres"
+              placeholder={t('auth.register.passwordHint')}
             />
           </div>
 
@@ -91,18 +102,18 @@ export default function Register() {
             {loading ? (
               <>
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Creando cuenta...
+                {t('auth.register.submitting')}
               </>
             ) : (
-              'Crear cuenta'
+              t('auth.register.submit')
             )}
           </button>
         </form>
 
         <p className="text-center text-slate-500 mt-6 text-sm">
-          ¿Ya tienes cuenta?{' '}
+          {t('auth.register.hasAccount')}{' '}
           <Link to="/login" className="text-brand-600 font-medium hover:underline">
-            Inicia sesión
+            {t('auth.register.loginLink')}
           </Link>
         </p>
       </div>

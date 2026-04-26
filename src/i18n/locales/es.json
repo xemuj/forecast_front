@@ -1,0 +1,89 @@
+{
+  "app": {
+    "name": "ClimaApp",
+    "title": "App del Clima"
+  },
+  "auth": {
+    "login": {
+      "subtitle": "Inicia sesión para ver el clima",
+      "email": "Correo electrónico",
+      "password": "Contraseña",
+      "submit": "Iniciar sesión",
+      "submitting": "Iniciando sesión...",
+      "noAccount": "¿No tienes cuenta?",
+      "registerLink": "Regístrate",
+      "error": {
+        "generic": "Inicio de sesión fallido",
+        "connection": "Error de conexión"
+      }
+    },
+    "register": {
+      "subtitle": "Crea tu cuenta para comenzar",
+      "email": "Correo electrónico",
+      "password": "Contraseña",
+      "passwordHint": "Mínimo 8 caracteres",
+      "submit": "Crear cuenta",
+      "submitting": "Creando cuenta...",
+      "hasAccount": "¿Ya tienes cuenta?",
+      "loginLink": "Inicia sesión",
+      "error": {
+        "generic": "Registro fallido",
+        "connection": "Error de conexión",
+        "passwordTooShort": "La contraseña debe tener al menos 8 caracteres"
+      }
+    }
+  },
+  "dashboard": {
+    "header": {
+      "signOut": "Cerrar sesión"
+    },
+    "location": {
+      "gettingLocation": "Obteniendo ubicación...",
+      "errorDenied": "Ubicación denegada. Haz clic en el mapa para configurarla manualmente.",
+      "errorGeneric": "No se pudo obtener la ubicación.",
+      "errorManual": "No se pudo obtener la ubicación. Haz clic en el mapa para configurarla manualmente.",
+      "newLocation": "Nueva ubicación seleccionada",
+      "confirm": "Confirmar",
+      "cancel": "Cancelar",
+      "saving": "Guardando...",
+      "errorUpdate": "Error al actualizar la ubicación"
+    },
+    "weather": {
+      "loading": "Cargando datos del clima...",
+      "error": "Error al cargar los datos del clima",
+      "forecast": "Pronóstico",
+      "in3hours": "En 3 horas",
+      "tomorrow": "Mañana",
+      "in3days": "Pasado mañana",
+      "last24h": "Últimas 24 horas",
+      "currentConditions": "Condiciones actuales",
+      "now": "Ahora",
+      "ago3h": "Hace 3h",
+      "humidity": "Humedad",
+      "wind": "Viento",
+      "temperature": "Temperatura",
+      "generated": "Generado:"
+    },
+    "wmo": {
+      "0": "Despejado",
+      "1": "Mayormente despejado",
+      "2": "Parcialmente nublado",
+      "3": "Nublado",
+      "45": "Niebla",
+      "48": "Niebla con escarcha",
+      "51": "Llovizna ligera",
+      "53": "Llovizna moderada",
+      "55": "Llovizna densa",
+      "61": "Lluvia ligera",
+      "63": "Lluvia moderada",
+      "65": "Lluvia intensa",
+      "71": "Nieve ligera",
+      "73": "Nieve moderada",
+      "75": "Nieve intensa",
+      "80": "Chubascos ligeros",
+      "81": "Chubascos moderados",
+      "82": "Chubascos violentos",
+      "95": "Tormenta"
+    }
+  }
+}
