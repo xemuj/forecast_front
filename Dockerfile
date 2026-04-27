@@ -1,7 +1,9 @@
 FROM node:20-alpine AS builder
 
 ARG VITE_API_URL=http://localhost:8000
+ARG VITE_PUBLIC_URL=http://localhost:5173
 ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_PUBLIC_URL=$VITE_PUBLIC_URL
 
 WORKDIR /app
 COPY package*.json ./
